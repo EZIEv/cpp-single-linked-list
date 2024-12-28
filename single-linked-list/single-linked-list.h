@@ -91,6 +91,7 @@ class SingleLinkedList {
         // Возвращает ссылку на самого себя
         // Инкремент итератора, не указывающего на существующий элемент списка, приводит к неопределённому поведению
         BasicIterator& operator++() noexcept {
+            assert(node_ != nullptr);
             node_ = node_->next_node;
             return *this;
         }
@@ -100,6 +101,7 @@ class SingleLinkedList {
         // Инкремент итератора, не указывающего на существующий элемент списка,
         // приводит к неопределённому поведению
         BasicIterator operator++(int) noexcept {
+            assert(node_ != nullptr);
             BasicIterator pre_it(node_);
             node_ = node_->next_node;
             return pre_it;
@@ -109,6 +111,7 @@ class SingleLinkedList {
         // Вызов этого оператора у итератора, не указывающего на существующий элемент списка,
         // приводит к неопределённому поведению
         [[nodiscard]] reference operator*() const noexcept {
+            assert(node_ != nullptr);
             return node_->value;
         }
 
@@ -116,6 +119,7 @@ class SingleLinkedList {
         // Вызов этого оператора у итератора, не указывающего на существующий элемент списка,
         // приводит к неопределённому поведению
         [[nodiscard]] pointer operator->() const noexcept {
+            assert(node_ != nullptr);
             return &(node_->value);
         }
 
@@ -135,21 +139,11 @@ public:
     SingleLinkedList() = default;
 
     SingleLinkedList(std::initializer_list<Type> values) {
-        Node* cur = &head_;
-        for (auto it = values.begin(); it != values.end(); ++it) {
-            cur->next_node = new Node(*it, nullptr);
-            cur = cur->next_node;
-        }
-        size_ = values.size();
+        InitializeFromIterObject(values);
     }
 
     SingleLinkedList(const SingleLinkedList& other) {
-        Node* current = &head_;
-        for (auto it = other.begin(); it != other.end(); ++it) {
-            current->next_node = new Node(*it, nullptr);
-            current = current->next_node;
-        }
-        size_ = other.size_;
+        InitializeFromIterObject(other);
     }
 
     SingleLinkedList& operator=(const SingleLinkedList& rhs) {
@@ -165,13 +159,8 @@ public:
     }
 
     void swap(SingleLinkedList& other) noexcept {
-        Node* tmp_node = other.head_.next_node;
-        other.head_.next_node = head_.next_node;
-        head_.next_node = tmp_node;
-
-        size_t tmp_size = other.size_;
-        other.size_ = size_;
-        size_ = tmp_size;
+        std::swap(head_.next_node, other.head_.next_node);
+        std::swap(size_, other.size_);
     }
 
     // Возвращает итератор, ссылающийся на первый элемент
@@ -246,6 +235,7 @@ public:
      * Если при создании элемента будет выброшено исключение, список останется в прежнем состоянии
      */
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
+        assert(pos.node_ != nullptr);
         Node* new_node_ptr = nullptr;
         try {
             new_node_ptr = new Node(value, pos.node_->next_node);
@@ -274,6 +264,7 @@ public:
      * Возвращает итератор на элемент, следующий за удалённым
      */
     Iterator EraseAfter(ConstIterator pos) noexcept {
+        assert(pos.node_ != nullptr);
         Node* temp_node_ptr = pos.node_->next_node;
         pos.node_->next_node = temp_node_ptr->next_node;
         delete temp_node_ptr;
@@ -300,6 +291,16 @@ private:
     // Фиктивный узел, используется для вставки "перед первым элементом"
     Node head_;
     size_t size_ = 0;
+
+    template <typename IterObject>
+    void InitializeFromIterObject(IterObject object) {
+        Node* cur = &head_;
+        for (auto it = object.begin(); it != object.end(); ++it) {
+            cur->next_node = new Node(*it, nullptr);
+            cur = cur->next_node;
+        }
+        size_ = object.size();
+    }
 };
 
 template <typename Type>
@@ -324,12 +325,12 @@ bool operator<(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& 
 
 template <typename Type>
 bool operator<=(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
-    return lhs < rhs || lhs == rhs;
+    return !(lhs > rhs);
 }
 
 template <typename Type>
 bool operator>(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
-    return !(lhs <= rhs);
+    return rhs < lhs;
 }
 
 template <typename Type>
