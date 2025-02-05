@@ -35,8 +35,6 @@ class SingleLinkedList {
         }
 
     public:
-        // Объявленные ниже типы сообщают стандартной библиотеке о свойствах этого итератора
-
         // Категория итератора — forward iterator
         // (итератор, который поддерживает операции инкремента и многократное разыменование)
         using iterator_category = std::forward_iterator_tag;
@@ -124,7 +122,7 @@ class SingleLinkedList {
         }
 
     private:
-        Node* node_ = nullptr;
+        Node* node_ = nullptr;  // < указатель на узел списка
     };
 
 public:
@@ -136,16 +134,20 @@ public:
     // Константный итератор, предоставляющий доступ для чтения к элементам списка
     using ConstIterator = BasicIterator<const Type>;
 
+    // Конструктор по умолчанию
     SingleLinkedList() = default;
 
+    // Конструктор на основе списка инициализации
     SingleLinkedList(std::initializer_list<Type> values) {
         InitializeFromIterObject(values);
     }
 
+    // Конструктор копирования
     SingleLinkedList(const SingleLinkedList& other) {
         InitializeFromIterObject(other);
     }
 
+    // Оператор присваивания копированием
     SingleLinkedList& operator=(const SingleLinkedList& rhs) {
         if (this != &rhs) {
             SingleLinkedList tmp(rhs);
@@ -154,10 +156,12 @@ public:
         return *this;
     }
 
+    // Деструктор
     ~SingleLinkedList() {
         Clear();
     }
 
+    // Обмен содержимым двух односвязных списков
     void swap(SingleLinkedList& other) noexcept {
         std::swap(head_.next_node, other.head_.next_node);
         std::swap(size_, other.size_);
@@ -250,6 +254,7 @@ public:
         return Iterator(new_node_ptr);
     }
 
+    // Удаляет первый элемент списка
     void PopFront() noexcept {
         if (!this->IsEmpty()) {
             Node* temp_node_ptr = head_.next_node;
@@ -272,12 +277,14 @@ public:
         return Iterator(pos.node_->next_node);
     }
     
+    // Вставляет элемент в начало списка
     void PushFront(const Type& value) {
         Node* new_node = new Node(value, head_.next_node);
         head_.next_node = new_node;
         ++size_;
     }
     
+    // Очищает список
     void Clear() noexcept {
         while (head_.next_node) {
             Node* next_node = head_.next_node->next_node;
@@ -288,10 +295,10 @@ public:
     }
 
 private:
-    // Фиктивный узел, используется для вставки "перед первым элементом"
-    Node head_;
-    size_t size_ = 0;
+    Node head_; // < фиктивный узел, используется для вставки "перед первым элементом"
+    size_t size_ = 0;   // < размер списка
 
+    // Инициализация списка через итерируемый объект
     template <typename IterObject>
     void InitializeFromIterObject(IterObject object) {
         Node* cur = &head_;
@@ -303,11 +310,14 @@ private:
     }
 };
 
+// Функция обмена содержимым двух списков
 template <typename Type>
 void swap(SingleLinkedList<Type>& lhs, SingleLinkedList<Type>& rhs) noexcept {
     lhs.swap(rhs);
 }
 
+// Операторы сравнения
+// ==, !=, <, >, <=, >=
 template <typename Type>
 bool operator==(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());

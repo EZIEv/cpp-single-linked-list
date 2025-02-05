@@ -1,3 +1,7 @@
+# Setting folders
+**/.vscode
+**/build
+
 # Prerequisites
 *.d
 
